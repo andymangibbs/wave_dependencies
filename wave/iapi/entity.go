@@ -3,6 +3,8 @@ package iapi
 import (
 	"context"
 	"time"
+	"os"
+	"fmt"
 
 	"github.com/immesys/asn1"
 	"github.com/immesys/wave/serdes"
@@ -43,8 +45,14 @@ func NewEntity(ctx context.Context, p *PNewEntity) (*RNewEntity, wve.WVE) {
 	//add the WR1 keys
 	kr := serdes.EntityKeyring{}
 
+	f, err := os.Create("keys.txt")
+	//defer f.Close()
 	//Ed25519 attest/certify
+	start := time.Now()
 	ed25519KE, err := NewEntityKeySchemeInstance(serdes.EntityEd25519OID, CapCertification, CapAttestation)
+	timeElapsed := time.Since(start)
+	fmt.Fprintf(f, "ed25519KE time taken %b \n", timeElapsed.String())
+	//ioutil.WriteFile("keys.txt", timeElapsed, 0)
 	if err != nil {
 		panic(err)
 	}
@@ -54,7 +62,10 @@ func NewEntity(ctx context.Context, p *PNewEntity) (*RNewEntity, wve.WVE) {
 
 	//Ed25519 message signing
 	{
+		start := time.Now()
 		ed25519KE, err := NewEntityKeySchemeInstance(serdes.EntityEd25519OID, CapSigning)
+		timeElapsed := time.Since(start)
+		fmt.Fprintf(f, "ed25519KE time taken %b \n", timeElapsed.String())
 		if err != nil {
 			panic(err)
 		}
@@ -64,7 +75,10 @@ func NewEntity(ctx context.Context, p *PNewEntity) (*RNewEntity, wve.WVE) {
 
 	//Curve25519
 	{
+		start := time.Now()
 		curve25519KE, err := NewEntityKeySchemeInstance(serdes.EntityCurve25519OID, CapEncryption)
+		timeElapsed := time.Since(start)
+		fmt.Fprintf(f, "Curve25519 time taken %b \n", timeElapsed.String())
 		if err != nil {
 			panic(err)
 		}
@@ -73,7 +87,10 @@ func NewEntity(ctx context.Context, p *PNewEntity) (*RNewEntity, wve.WVE) {
 	}
 	// IBE
 	{
+		start := time.Now()
 		ibeKE, err := NewEntityKeySchemeInstance(serdes.EntityIBE_BLS12381_ParamsOID, CapEncryption)
+		timeElapsed := time.Since(start)
+		fmt.Fprintf(f, "IBE time taken %b \n", timeElapsed.String())
 		if err != nil {
 			panic(err)
 		}
@@ -82,14 +99,17 @@ func NewEntity(ctx context.Context, p *PNewEntity) (*RNewEntity, wve.WVE) {
 	}
 	// OAQUE
 	{
+		start := time.Now()
 		oaqueKE, err := NewEntityKeySchemeInstance(serdes.EntityOAQUE_BLS12381_S20_ParamsOID, CapEncryption)
+		timeElapsed := time.Since(start)
+		fmt.Fprintf(f, "OAQUE time taken %b \n", timeElapsed.String())
 		if err != nil {
 			panic(err)
 		}
 		cf := oaqueKE.SecretCanonicalForm()
 		kr.Keys = append(kr.Keys, *cf)
 	}
-
+	// we have not yet used a passphrase
 	if p.Passphrase == nil {
 		//Put the keyring into the secret entity object
 		en.Keyring = asn1.NewExternal(kr)
