@@ -1,0 +1,29 @@
+language: go
+
+go:
+  - 1.12.x
+
+install: true
+
+#env:
+#  - GO111MODULE=on
+
+before_install:
+  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh  
+  - cd ../../ && mv gtfierro immesys && cd immesys/wave
+  - dep ensure
+  - pushd vendor/github.com/ucbrise/jedi-pairing 
+  - make 
+  - popd
+
+deploy:
+  provider: releases
+  api_key: "$GITHUB_API_TOKEN"
+  file: 
+    - "waved/cmd/waved"
+    - "cli/wv"
+  skip_cleanup: true
+  draft: true
+
+script:
+  - make all

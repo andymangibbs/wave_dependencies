@@ -1,0 +1,184 @@
+swagger: "2.0"
+info:
+  description: "This is the API for URL Location Scheme v1"
+  version: "1.0.0"
+  title: "SimpleHTTP - LocationScheme URL v1"
+host: "my.wave.provider"
+basePath: "/v1"
+schemes:
+- "https"
+paths:
+  /info:
+    get:
+      summary: "Get details about the server"
+      description: "Return information about the hash scheme used by the server, along with its status"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Server details"
+          schema:
+            $ref: "#/definitions/ServerInfoResponse"
+  /obj:
+    post:
+      summary: "Add a new object"
+      description: "Adds a new DER encoded WaveObject to the store"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "DER encoded WaveObject"
+        required: true
+        schema:
+          $ref: "#/definitions/PutObjectRequest"
+      responses:
+        201:
+          description: "Valid input"
+          schema:
+            $ref: "#/definitions/PutObjectResponse"
+        400:
+          description: "Invalid input"
+        500:
+          description: "Server error"
+  /obj/{hash}:
+    get:
+      summary: "Get an object by hash"
+      description: "Retrieves a DER encoded WaveObject by hash"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "hash"
+        in: "path"
+        description: "Base64 encoding of a multihash representation returned by POST /obj"
+        required: true
+        type: "string"
+        format: "byte"
+      responses:
+        404:
+          description: "No such object exists"
+          schema:
+            $ref: "#/definitions/NoSuchObjectResponse"
+        201:
+          description: "Object found"
+          schema:
+            $ref: "#/definitions/ObjectResponse"
+        500:
+          description: "Server error"
+        400:
+            description: "Invalid input"
+  /queue/{id}:
+    post:
+      summary: "Enqueue an object notification"
+      description: "Places the given hash in the given queue"
+      produces:
+      - "application/json"
+      consumes:
+      - "application/json"
+      parameters:
+      - name: "body"
+        in: "body"
+        schema:
+          $ref: "#/definitions/EnqueueRequest"
+      - name: "id"
+        in: "path"
+        description: "Base64 encoding of a multihash formatted queue id"
+        required: true
+        type: "string"
+        format: "byte"
+      responses:
+        201:
+          description: "Queue entry accepted"
+          schema:
+            $ref: "#/definitions/EnqueueResponse"
+        500:
+          description: "Server error"
+        400:
+          description: "Invalid input"
+    get:
+      summary: "Retrieve a queue entry"
+      description: "Retrieve a queue entry identified by the queue id and the token"
+      produces:
+      - "application/json"
+      consumes:
+      - "application/json"
+      parameters:
+      - name: id
+        in: path
+        description: "Base64 encoding of a multihash formatted queue id"
+        required: true
+        type: "string"
+        format: "byte"
+      - name: token
+        in: query
+        description: "A token indicating which element of the queue to retrieve"
+        type: "string"
+      responses:
+        404:
+          description: "No such object exists"
+          schema:
+            $ref: "#/definitions/NoSuchQueueEntryResponse"
+        200:
+          description: "Queue entry found"
+          schema:
+            $ref: "#/definitions/IterateQueueResponse"
+        500:
+          description: "Server error"
+        400:
+          description: "Invalid input"
+definitions:
+  ServerInfoResponse:
+    type: object
+    properties:
+      hashScheme:
+        description: "OID of the hash scheme used by this location"
+        type: string
+      version:
+        description: "The software version banner"
+        type: string
+  PutObjectRequest:
+    type: object
+    properties:
+      der:
+        description: "base64+DER encoded WaveObject to be submitted to the storage"
+        type: string
+        format: binary
+  PutObjectResponse:
+    type: object
+    properties:
+      hash:
+        description: "base64 encoded multihash giving hash scheme and contents"
+        type: string
+        format: binary
+  ObjectResponse:
+    type: object
+    properties:
+      der:
+        description: "base64+DER encoded WaveObject"
+        type: string
+        format: binary
+  NoSuchObjectResponse:
+    type: object
+  IterateQueueResponse:
+    type: object
+    properties:
+      hash:
+        description: "base64 encoded multihash of queue item's hash scheme and contents"
+        type: string
+        format: binary
+      nextToken:
+        description: "the token of the next element"
+        type: string
+  EnqueueResponse:
+    type: object
+  NoSuchQueueEntryResponse:
+    type: object
+  EnqueueRequest:
+    type: object
+    properties:
+      entryHash:
+        description: "base64 encoded multihash representation of hash scheme and contents"
+        type: string
+        format: binary
