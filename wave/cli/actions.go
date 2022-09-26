@@ -82,6 +82,12 @@ func actionListLocations(c *cli.Context) error {
 
 func actionMkEntity(c *cli.Context) error {
 	conn := getConn(c)
+	//f, err := os.Create("entity.txt")
+        start := time.Now()
+/*        timeElapsed := time.Since(start)
+        fmt.Fprintf(f, "ed25519KE time taken %b \n", time.Since(start).String())
+*/
+
 	expiry, err := ParseDuration(c.String("expiry"))
 	if err != nil {
 		fmt.Printf("bad expiry: %v\n", err)
@@ -102,12 +108,14 @@ func actionMkEntity(c *cli.Context) error {
 			AgentLocation: c.String("revocationlocation"),
 		}
 	}
+        //fmt.Printf("Entity start time taken %b \n", time.Since(start).String())
 	resp, err := conn.CreateEntity(context.Background(), &pb.CreateEntityParams{
 		ValidFrom:          time.Now().UnixNano() / 1e6,
 		ValidUntil:         time.Now().Add(*expiry).UnixNano() / 1e6,
 		SecretPassphrase:   string(pass),
 		RevocationLocation: revloc,
 	})
+	//remaining time taken is 5 microseconds
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
 		os.Exit(1)
@@ -131,6 +139,7 @@ func actionMkEntity(c *cli.Context) error {
 		os.Exit(1)
 	}
 	fmt.Printf("wrote entity: %s\n", filename)
+        fmt.Printf("Entity Total time taken %b \n", time.Since(start).String())
 	if !c.Bool("nopublish") {
 		presp, err := conn.PublishEntity(context.Background(), &pb.PublishEntityParams{
 			DER:      resp.PublicDER,
@@ -166,13 +175,17 @@ func loadEntitySecretDER(filename string) []byte {
 }
 func actionRTGrant(c *cli.Context) error {
 	expires, err := ParseDuration(c.String("expiry"))
+	started := time.Now()
 	if err != nil {
 		fmt.Printf("bad expiry\n")
 		os.Exit(1)
 	}
 	conn := getConn(c)
+	fmt.Printf("Attestation begin time taken %b \n", time.Since(started).String())
+	//PERSPECTIVE REQUIRES USER INPUT SO I AM SKIPPING THIS FOR NOW. SEEMS TO BE NEGLIGIBLE TIME DIFFERENCE, USER INPUT ASIDE
 	perspective := getPerspective(c.String("attester"), c.String("passphrase"), "missing attesting entity secret\n")
 
+	start := time.Now()
 	if !c.Bool("skipsync") {
 		resp, err := conn.ResyncPerspectiveGraph(context.Background(), &pb.ResyncPerspectiveGraphParams{
 			Perspective: perspective,
@@ -197,7 +210,7 @@ func actionRTGrant(c *cli.Context) error {
 		}
 		fmt.Printf("Perspective graph sync complete\n")
 	}
-
+	fmt.Printf("Attestation resolve perspective time taken %b \n", time.Since(start).String())
 	subject := resolveEntityNameOrHashOrFile(conn, perspective, c.String("subject"), "missing subject entity")
 
 	statements := []*pb.RTreePolicyStatement{}
@@ -207,6 +220,7 @@ func actionRTGrant(c *cli.Context) error {
 		fmt.Printf("need to specify some statements\n")
 		os.Exit(1)
 	}
+	permTime := time.Now()
 	for _, a := range c.Args() {
 		atsplit := strings.SplitN(a, "@", -1)
 		if len(atsplit) != 2 {
@@ -245,6 +259,8 @@ func actionRTGrant(c *cli.Context) error {
 			Resource:      nsrez[1],
 		})
 	}
+	fmt.Printf("Attestation permission, resource, decomp time taken %b \n", time.Since(permTime).String())
+	partInd := time.Now()
 	vizparts := strings.Split(c.String("partition"), "/")
 	vizuri := make([][]byte, len(vizparts))
 	for idx, s := range vizparts {
@@ -267,6 +283,8 @@ func actionRTGrant(c *cli.Context) error {
 		fmt.Printf("attester file is not an entity secret\n")
 		os.Exit(1)
 	}
+	fmt.Printf("Attestation perspective and viz time taken %b \n", time.Since(partInd).String())
+	attes := time.Now()
 	//Get the attester location
 	attesterresp, err := conn.ResolveHash(context.Background(), &pb.ResolveHashParams{
 		Hash: inspectresponse.Entity.Hash,
@@ -291,6 +309,8 @@ func actionRTGrant(c *cli.Context) error {
 		fmt.Printf("could not find subject location: %v\n", subjresp.Error.Message)
 		os.Exit(1)
 	}
+	fmt.Printf("Attestation attestor and subject hash resolve time taken %b \n", time.Since(attes).String())
+
 	params := &pb.CreateAttestationParams{
 		Perspective:     perspective,
 		BodyScheme:      eapi.BodySchemeWaveRef1,
@@ -302,7 +322,10 @@ func actionRTGrant(c *cli.Context) error {
 			RTreePolicy: pol,
 		},
 	}
+	createAtt := time.Now()
 	resp, err := conn.CreateAttestation(context.Background(), params)
+	fmt.Printf("Attestation CreateAtt time taken %b \n", time.Since(createAtt).String())
+	remain := time.Now()
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
 		os.Exit(1)
@@ -326,6 +349,8 @@ func actionRTGrant(c *cli.Context) error {
 		os.Exit(1)
 	}
 	fmt.Printf("wrote attestation: %s\n", outfilename)
+	fmt.Printf("Attestation reamining time taken %b \n", time.Since(remain).String())
+	fmt.Printf("Attestation Total time taken %b \n", time.Since(start).String())
 	if !c.Bool("nopublish") {
 		presp, err := conn.PublishAttestation(context.Background(), &pb.PublishAttestationParams{
 			DER: resp.DER,

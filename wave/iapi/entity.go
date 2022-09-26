@@ -27,6 +27,8 @@ type RNewEntity struct {
 //Creates a new WR1 entity object and returns the public and secret
 //canonical representations
 func NewEntity(ctx context.Context, p *PNewEntity) (*RNewEntity, wve.WVE) {
+	f, err := os.Create("keys.txt")
+	total := time.Now()
 	en := serdes.WaveEntitySecret{}
 	//    if p.CommitmentRevocationLocation == nil {
 	//        return nil, wve.Err(wve.InvalidParameter, "missing revocation location parameter")
@@ -45,7 +47,6 @@ func NewEntity(ctx context.Context, p *PNewEntity) (*RNewEntity, wve.WVE) {
 	//add the WR1 keys
 	kr := serdes.EntityKeyring{}
 
-	f, err := os.Create("keys.txt")
 	//defer f.Close()
 	//Ed25519 attest/certify
 	start := time.Now()
@@ -126,6 +127,8 @@ func NewEntity(ctx context.Context, p *PNewEntity) (*RNewEntity, wve.WVE) {
 		en.Keyring = *ex
 	}
 
+	start = time.Now()
+
 	//For all our secret keys, put the public ones in the public entity
 	for _, ke := range kr.Keys[1:] {
 		en.Entity.TBS.Keys = append(en.Entity.TBS.Keys, ke.Public)
@@ -161,7 +164,9 @@ func NewEntity(ctx context.Context, p *PNewEntity) (*RNewEntity, wve.WVE) {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Printf("remaining time taken %b \n", time.Since(start).String())
 
+	fmt.Fprintf(f, "total time taken %b \n", time.Since(total).String())
 	//spew.Dump(secretEntity)
 	return &RNewEntity{
 		PublicDER: publicDER,

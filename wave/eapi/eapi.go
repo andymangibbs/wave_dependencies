@@ -258,6 +258,7 @@ func (e *EAPI) CreateEntity(ctx context.Context, p *pb.CreateEntityParams) (*pb.
         }*/
 
 	Init(os.Stdout, os.Stdout, os.Stdout, os.Stderr)
+	start := time.Now()
 
 	Trace.Printf("CreateEntity() started")
 
@@ -289,6 +290,7 @@ func (e *EAPI) CreateEntity(ctx context.Context, p *pb.CreateEntityParams) (*pb.
 	}
 	//Keccak256 is used to hash PublicDER, this hash is then used with Multihash() which is a function capable of adding an identifier
 	//to a hash that identifies the hash that was used 
+	//keccak256 takes approx 5microseconds
 	hi := iapi.KECCAK256.Instance(resp.PublicDER)
 	return &pb.CreateEntityResponse{
 		PublicDER: resp.PublicDER,
