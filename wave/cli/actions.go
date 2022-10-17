@@ -87,7 +87,7 @@ func actionMkEntity(c *cli.Context) error {
 /*        timeElapsed := time.Since(start)
         fmt.Fprintf(f, "ed25519KE time taken %b \n", time.Since(start).String())
 */
-
+	fmt.Printf("actionMkEntity() Started at: %b \n", start.String())
 	expiry, err := ParseDuration(c.String("expiry"))
 	if err != nil {
 		fmt.Printf("bad expiry: %v\n", err)
@@ -139,7 +139,7 @@ func actionMkEntity(c *cli.Context) error {
 		os.Exit(1)
 	}
 	fmt.Printf("wrote entity: %s\n", filename)
-        fmt.Printf("Entity Total time taken %b \n", time.Since(start).String())
+        fmt.Printf("actionMkEntity() %b time elapsed before publish %b \n", filename, time.Since(start).String())
 	if !c.Bool("nopublish") {
 		presp, err := conn.PublishEntity(context.Background(), &pb.PublishEntityParams{
 			DER:      resp.PublicDER,
@@ -153,6 +153,7 @@ func actionMkEntity(c *cli.Context) error {
 			fmt.Printf("publish error: %s\n", presp.Error.Message)
 			os.Exit(1)
 		}
+        	fmt.Printf("actionMkEntity() %b time elapsed after publish %b \n", filename, time.Since(start).String())
 	}
 	return nil
 }
@@ -349,7 +350,7 @@ func actionRTGrant(c *cli.Context) error {
 		os.Exit(1)
 	}
 	fmt.Printf("wrote attestation: %s\n", outfilename)
-	fmt.Printf("Attestation reamining time taken %b \n", time.Since(remain).String())
+	fmt.Printf("Attestation remaining time taken %b \n", time.Since(remain).String())
 	fmt.Printf("Attestation Total time taken %b \n", time.Since(start).String())
 	if !c.Bool("nopublish") {
 		presp, err := conn.PublishAttestation(context.Background(), &pb.PublishAttestationParams{

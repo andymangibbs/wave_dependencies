@@ -164,7 +164,6 @@ func NewEntity(ctx context.Context, p *PNewEntity) (*RNewEntity, wve.WVE) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("remaining time taken %b \n", time.Since(start).String())
 
 	fmt.Fprintf(f, "total time taken %b \n", time.Since(total).String())
 	//spew.Dump(secretEntity)

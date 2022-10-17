@@ -1,0 +1,13 @@
+# Systemd unit file. 
+# Install in /etc/systemd/system/
+[Unit]
+Description="WAVE agent"
+
+[Service]
+Restart=always
+RestartSec=30
+ExecStart=/usr/bin/waved
+
+[Install]
+WantedBy=multi-user.target
+

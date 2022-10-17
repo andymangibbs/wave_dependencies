@@ -258,9 +258,9 @@ func (e *EAPI) CreateEntity(ctx context.Context, p *pb.CreateEntityParams) (*pb.
         }*/
 
 	Init(os.Stdout, os.Stdout, os.Stdout, os.Stderr)
-	start := time.Now()
+//	start := time.Now()
 
-	Trace.Printf("CreateEntity() started")
+	//Trace.Printf("CreateEntity() started")
 
 	revloc, err := LocationSchemeInstance(p.RevocationLocation)
 	if err != nil {
