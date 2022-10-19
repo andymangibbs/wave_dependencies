@@ -358,7 +358,7 @@ func actionRTGrant(c *cli.Context) error {
 		timetaken := time.Since(start).Seconds()
 		timemilli := timetaken * 1000
 
-		fmt.Printf("Attestation Total time taken %v %v \n", timemilli, "ms")
+		fmt.Printf("%v, Attestation Total time taken %v %v \n", c.String("subject"), timemilli, "ms")
 	}
 	return nil
 }
