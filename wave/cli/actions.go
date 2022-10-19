@@ -152,7 +152,7 @@ func actionMkEntity(c *cli.Context) error {
 			fmt.Printf("publish error: %s\n", presp.Error.Message)
 			os.Exit(1)
 		}
-        	fmt.Printf("actionMkEntity() %b time elapsed after publish %b \n", filename, time.Since(start).String())
+        	fmt.Printf("actionMkEntity() %v time elapsed after publish %v \n", filename, time.Since(start).String())
 	}
 	return nil
 }
@@ -355,8 +355,10 @@ func actionRTGrant(c *cli.Context) error {
 			os.Exit(1)
 		}
 		fmt.Printf("published attestation\n")
-		timetaken := time.Since(start)
-		fmt.Printf("Attestation Total time taken %b \n", timetaken.String())
+		timetaken := time.Since(start).Seconds()
+		timemilli := timetaken * 1000
+
+		fmt.Printf("Attestation Total time taken %v %v \n", timemilli, "ms")
 	}
 	return nil
 }
