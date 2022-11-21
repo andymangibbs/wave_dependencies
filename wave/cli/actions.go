@@ -771,7 +771,7 @@ func actionRTProve(c *cli.Context) error {
 	subj_hash_str := base64.URLEncoding.EncodeToString(subj_hash)
 	namespace_str := base64.URLEncoding.EncodeToString(namespace)
 	outfilename := fmt.Sprintf("proof_%s.pem", time.Now().Format(time.RFC3339))
-	outfilename = fmt.Sprintf("proof__%v__%v.pem", subj_hash_str, namespace_str)
+	outfilename = fmt.Sprintf("proof-Subject-%v-Attester-%v.pem", subj_hash_str, namespace_str)
 	if c.String("outfile") != "" {
 		outfilename = c.String("outfile")
 	}
