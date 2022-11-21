@@ -152,7 +152,7 @@ func actionMkEntity(c *cli.Context) error {
 			fmt.Printf("publish error: %s\n", presp.Error.Message)
 			os.Exit(1)
 		}
-        	fmt.Printf("actionMkEntity() %v time elapsed after publish %v \n", filename, time.Since(start).String())
+		fmt.Printf("actionMkEntity() %v time elapsed after publish %v \n", filename, time.Since(start).String())
 	}
 	return nil
 }
@@ -767,7 +767,13 @@ func actionRTProve(c *cli.Context) error {
 		Type:  eapi.PEM_EXPLICIT_PROOF,
 		Bytes: resp.ProofDER,
 	}
+	subj_hash := inspectresponse.Entity.Hash
+	subj_hash_str := base64.URLEncoding.EncodeToString(subj_hash)
+	namespace_str := base64.URLEncoding.EncodeToString(namespace)
+	fmt.Printf("subj hash -- %v \n", subj_hash_str)
+	fmt.Printf("namespace -- %v \n", namespace_str)
 	outfilename := fmt.Sprintf("proof_%s.pem", time.Now().Format(time.RFC3339))
+	outfilename = fmt.Sprintf("proof__%v__%v.pem", subj_hash_str, namespace_str)
 	if c.String("outfile") != "" {
 		outfilename = c.String("outfile")
 	}
